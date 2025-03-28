@@ -1,0 +1,6 @@
+package "ignition"
+version "0.1"
+purpose "Scene Update Protocol (SUP) debugging tool"
+
+option "domain" d "Absolute path of server socket" string required
+
