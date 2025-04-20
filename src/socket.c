@@ -51,7 +51,8 @@ int add_new_client(sock_arr *arr, int fd)
 
 	++arr->count;
 
-	printf("New client (client ID: %i).\n", fd);
+	printf("\033[1mNew client\033[0m\n");
+	printf("| Client ID: %i\n", fd);
 
 	return 0;
 }
@@ -83,7 +84,8 @@ int remove_client(sock_arr *arr, int idx)
 		arr->fds = new_addr;
 	}
 
-	printf("Disconnecting client (client ID: %i).\n", arr->fds[idx]);
+	printf("\033[1mClient disconnect\033[0m\n");
+	printf("| Client ID: %i\n", arr->fds[idx]);
 
 	return 0;
 }
@@ -220,7 +222,7 @@ int proc_msg(sock_arr *arr, int idx)
 
 int proc_config(int fd)
 {
-	printf("Configure Connection (0)\n");
+	printf("\033[1mNew request\033[0m (0: configure connection)\n");
 	return 0;
 }
 
@@ -231,37 +233,41 @@ int proc_asset_load(int fd)
 	int32_t recv_int32;
 	char path_chr = 1;
 
-	printf("Load Asset (1)\n");
+	printf("\033[1mNew request\033[0m (1: load asset)\n");
+
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: asset ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
-	
+
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_load() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_load() failed.\n");
-		return -1;
-	}
-
-	printf("Asset ID: %i\n", recv_int32);
+	printf("| Asset ID: %i\n", recv_int32);
 
 	/* Print out recieved string character by character */
+
+	printf("| Asset path: ");
 	while (path_chr)
 	{
 		recv_status = recv(fd, &path_chr, sizeof(path_chr), 0);
 
-		if (recv_status == 0)
+		if (recv_status == -1)
 		{
+			perror("recv() in proc_asset_load() failed");
 			return -1;
 		}
 
-		if (recv_status == -1)
+		if (recv_status == 0)
 		{
-			printf("recv() in proc_asset_load() failed.\n");
 			return -1;
 		}
 
@@ -278,23 +284,24 @@ int proc_asset_show(int fd)
 	int recv_status;
 	int32_t recv_int32;
 
-	printf("Show Asset (2)\n");
+	printf("\033[1mNew request\033[0m (2: show asset)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: asset ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
+
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_show() failed");
+		return -1;
+	}
 
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_show() failed.\n");
-		return -1;
-	}
-
-	printf("Asset ID: %i\n", recv_int32);
+	printf("| Asset ID: %i\n", recv_int32);
 
 	return 0;
 }
@@ -305,23 +312,24 @@ int proc_asset_hide(int fd)
 	int recv_status;
 	int32_t recv_int32;
 
-	printf("Hide Asset (3)\n");
+	printf("\033[1mNew request\033[0m (3: hide asset)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: asset ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
+
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_hide() failed");
+		return -1;
+	}
 
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_hide() failed.\n");
-		return -1;
-	}
-
-	printf("Asset ID: %i\n", recv_int32);
+	printf("| Asset ID: %i\n", recv_int32);
 
 	return 0;
 }
@@ -332,167 +340,168 @@ int proc_asset_tform(int fd)
 	int32_t recv_int32;
 	float recv_float; /* reused for each field for the time being */
 
-	printf("Transform Asset (4)\n");
+	printf("\033[1mNew request\033[0m (4: transform asset)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: Asset ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("Asset ID: %f\n", recv_int32);
+	printf("| Asset ID: %f\n", recv_int32);
 
 	/* Field: X location */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("X location: %f\n", recv_float);
+	printf("| X location: %f\n", recv_float);
 
 	/* Field: Y location */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("Y location: %f\n", recv_float);
+	printf("| Y location: %f\n", recv_float);
 
 	/* Field: Z location */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("Z location: %f\n", recv_float);
+	printf("| Z location: %f\n", recv_float);
 
 	/* Field: X rotation */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("X rotation: %f\n", recv_float);
+	printf("| X rotation: %f\n", recv_float);
 
 	/* Field: Y rotation */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("Y rotation: %f\n", recv_float);
+	printf("| Y rotation: %f\n", recv_float);
 
 	/* Field: Z rotation */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("Z rotation: %f\n", recv_float);
+	printf("| Z rotation: %f\n", recv_float);
 
 	/* Field: X scale */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("X scale: %f\n", recv_float);
+	printf("| X scale: %f\n", recv_float);
 
 	/* Field: Y scale */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("Y scale: %f\n", recv_float);
+	printf("| Y scale: %f\n", recv_float);
 
 	/* Field: Z scale */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_tform() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_tform() failed.\n");
-		return -1;
-	}
-
-	printf("Z scale: %f\n", recv_float);
+	printf("| Z scale: %f\n", recv_float);
 
 	return 0;
 }
@@ -502,23 +511,24 @@ int proc_asset_destroy(int fd)
 	int recv_status;
 	int32_t recv_int32;
 
-	printf("Destroy Asset (5)\n");
+	printf("\033[1mNew request\033[0m (5: destroy asset)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: asset ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
+
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_asset_destroy() failed");
+		return -1;
+	}
 
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_asset_destroy() failed.\n");
-		return -1;
-	}
-
-	printf("Asset ID: %i\n", recv_int32);
+	printf("| Asset ID: %i\n", recv_int32);
 
 	return 0;
 }
@@ -531,41 +541,44 @@ int proc_action_load(int fd)
 	int32_t recv_int32;
 	char path_chr = 1;
 
-	printf("Create Action Instance (6)\n");
+	printf("\033[1mNew request\033[0m (6: create action instance)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: Asset ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_action_load() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_action_load() failed.\n");
-		return -1;
-	}
-
-	printf("Asset ID: %f\n", recv_int32);
+	printf("| Asset ID: %f\n", recv_int32);
 
 	/* Field: action ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
 
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_action_load() failed");
+		return -1;
+	}
+
 	if (recv_status == 0)
 	{
 		return -1;
 	}
 
-	if (recv_status == -1)
-	{
-		printf("recv() in proc_action_load() failed.\n");
-		return -1;
-	}
-
-	printf("Action ID: %i\n", recv_int32);
+	printf("| Action ID: %i\n", recv_int32);
 
 	/* Print out recieved action name character by character */
+
+	printf("| Action name: ");
 	while (path_chr)
 	{
 		recv_status = recv(fd, &path_chr, sizeof(path_chr), 0);
@@ -577,7 +590,7 @@ int proc_action_load(int fd)
 
 		if (recv_status == -1)
 		{
-			printf("recv() in proc_action_load() failed.\n");
+			perror("recv() in proc_action_load() failed");
 			return -1;
 		}
 
@@ -596,7 +609,8 @@ int proc_action_set_frame(int fd)
 	int recv_status;
 	int32_t recv_int32;
 
-	printf("Set Action Frame (7)\n");
+	printf("\033[1mNew request\033[0m (7: set action frame)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: action ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
@@ -608,11 +622,11 @@ int proc_action_set_frame(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_action_set_frame() failed.\n");
+		perror("recv() in proc_action_set_frame() failed");
 		return -1;
 	}
 
-	printf("Action ID: %i\n", recv_int32);
+	printf("| Action ID: %i\n", recv_int32);
 
 	/* Field: action frame */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
@@ -624,11 +638,11 @@ int proc_action_set_frame(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_action_set_frame() failed.\n");
+		perror("recv() in proc_action_set_frame() failed");
 		return -1;
 	}
 
-	printf("Frame: %i\n", recv_int32);
+	printf("| Frame: %i\n", recv_int32);
 
 
 	return 0;
@@ -641,7 +655,8 @@ int proc_action_set_weight(int fd)
 	int32_t recv_int32;
 	float recv_float;
 
-	printf("Set Action Weight (8)\n");
+	printf("\033[1mNew request\033[0m (8: set action weight)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: action ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
@@ -653,11 +668,11 @@ int proc_action_set_weight(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_action_set_weight() failed.\n");
+		perror("recv() in proc_action_set_weight() failed");
 		return -1;
 	}
 
-	printf("Action ID: %i\n", recv_int32);
+	printf("| Action ID: %i\n", recv_int32);
 
 	/* Field: action weight */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -669,11 +684,11 @@ int proc_action_set_weight(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_action_set_weight() failed.\n");
+		perror("recv() in proc_action_set_weight() failed");
 		return -1;
 	}
 
-	printf("Weight: %f\n", recv_float);
+	printf("| Weight: %f\n", recv_float);
 
 	return 0;
 }
@@ -684,7 +699,8 @@ int proc_action_destroy(int fd)
 	int recv_status;
 	int32_t recv_int32;
 
-	printf("Destroy Action Instance (9)\n");
+	printf("\033[1mNew request\033[0m (9: destroy action instance)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: action ID */
 	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
@@ -696,11 +712,11 @@ int proc_action_destroy(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_action_destroy() failed.\n");
+		perror("recv() in proc_action_destroy() failed");
 		return -1;
 	}
 
-	printf("Action ID: %i\n", recv_int32);
+	printf("| Action ID: %i\n", recv_int32);
 
 	return 0;
 }
@@ -712,7 +728,8 @@ int proc_viewpoint_tform(int fd)
 	int recv_status;
 	float recv_float;
 
-	printf("Transform Viewpoint (10)\n");
+	printf("\033[1mNew request\033[0m (10: transform viewpoint)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: X location */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -724,11 +741,11 @@ int proc_viewpoint_tform(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_viewpoint_tform() failed.\n");
+		perror("recv() in proc_viewpoint_tform() failed");
 		return -1;
 	}
 
-	printf("X location: %f\n", recv_float);
+	printf("| X location: %f\n", recv_float);
 
 	/* Field: Y location */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -740,11 +757,11 @@ int proc_viewpoint_tform(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_viewpoint_tform() failed.\n");
+		perror("recv() in proc_viewpoint_tform() failed");
 		return -1;
 	}
 
-	printf("Y location: %f\n", recv_float);
+	printf("| Y location: %f\n", recv_float);
 
 	/* Field: Z location */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -756,11 +773,11 @@ int proc_viewpoint_tform(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_viewpoint_tform() failed.\n");
+		perror("recv() in proc_viewpoint_tform() failed");
 		return -1;
 	}
 
-	printf("Z location: %f\n", recv_float);
+	printf("| Z location: %f\n", recv_float);
 
 	/* Field: X rotation */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -772,11 +789,11 @@ int proc_viewpoint_tform(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_viewpoint_tform() failed.\n");
+		perror("recv() in proc_viewpoint_tform() failed");
 		return -1;
 	}
 
-	printf("X rotation: %f\n", recv_float);
+	printf("| X rotation: %f\n", recv_float);
 
 	/* Field: Y rotation */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -788,11 +805,11 @@ int proc_viewpoint_tform(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_viewpoint_tform() failed.\n");
+		perror("recv() in proc_viewpoint_tform() failed");
 		return -1;
 	}
 
-	printf("Y rotation: %f\n", recv_float);
+	printf("| Y rotation: %f\n", recv_float);
 
 	/* Field: Z rotation */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -804,11 +821,11 @@ int proc_viewpoint_tform(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_viewpoint_tform() failed.\n");
+		perror("recv() in proc_viewpoint_tform() failed");
 		return -1;
 	}
 
-	printf("Z rotation: %f\n", recv_float);
+	printf("| Z rotation: %f\n", recv_float);
 
 	return 0;
 }
@@ -819,7 +836,8 @@ int proc_viewpoint_set_fov(int fd)
 	int recv_status;
 	float recv_float;
 
-	printf("Set Viewpoint Field of View (11)\n");
+	printf("\033[1mNew request\033[0m (11: set viewpoint field of view)\n");
+	printf("| Client ID: %i\n", fd);
 
 	/* Field: FOV */
 	recv_status = recv(fd, &recv_float, sizeof(recv_float), 0);
@@ -831,12 +849,11 @@ int proc_viewpoint_set_fov(int fd)
 
 	if (recv_status == -1)
 	{
-		printf("recv() in proc_viewpoint_set_fov() failed.\n");
+		perror("recv() in proc_viewpoint_set_fov() failed");
 		return -1;
 	}
 
-	printf("FOV: %f\n", recv_float);
-
+	printf("| FOV: %f\n", recv_float);
 
 	return 0;
 }
