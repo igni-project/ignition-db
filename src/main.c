@@ -10,7 +10,7 @@
 #include <sys/select.h>
 #include <errno.h>
 
-int main(int argc, char** argv)
+int main(int argc, char *argv[], char *envp[])
 {
 	struct gengetopt_args_info args_info;
 
@@ -66,6 +66,22 @@ int main(int argc, char** argv)
 	{
 		printf("Failed to create socket array.\n");
 		return -1;
+	}
+
+	i = 0;
+	while (i < args_info.inputs_num)
+	{
+		printf("Executing %s\n", args_info.inputs[i]);
+
+		if (!fork()) break;
+
+        if (execve(args_info.inputs[i], 0, envp) == -1) {
+            printf("Failed to execute ");
+            perror(args_info.inputs[i]);
+            exit(EXIT_FAILURE);
+        }
+
+		++i;
 	}
 
 	while (1)

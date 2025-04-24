@@ -1,4 +1,4 @@
 #!/bin/sh
 
-gengetopt -i opt.ggo
+gengetopt --unnamed-opts -i opt.ggo
 

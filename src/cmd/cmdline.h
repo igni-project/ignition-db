@@ -47,6 +47,8 @@ struct gengetopt_args_info
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int domain_given ;	/**< @brief Whether domain was given.  */
 
+  char **inputs ; /**< @brief unnamed options (options without names) */
+  unsigned inputs_num ; /**< @brief unnamed options number */
 } ;
 
 /** @brief The additional parameters to pass to parser functions */
