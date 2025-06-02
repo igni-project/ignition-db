@@ -15,5 +15,6 @@ add_executable(
 
 find_library(LIBSUP sup)
 
-
+install(TARGETS ignition)
+include(CPack)
 
