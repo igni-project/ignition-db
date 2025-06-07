@@ -15,6 +15,8 @@ add_executable(
 
 find_library(LIBSUP sup)
 
+target_link_libraries(ignition ${LIBSUP})
+
 install(TARGETS ignition)
 include(CPack)
 
