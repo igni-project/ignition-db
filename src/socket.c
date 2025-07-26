@@ -222,7 +222,28 @@ int proc_msg(sock_arr *arr, int idx)
 
 int proc_config(int fd)
 {
+	int recv_status;
+	int32_t recv_int32;
+
 	printf("\033[1mNew request\033[0m (0: configure connection)\n");
+	printf("| Client ID: %i\n", fd);
+
+	/* Field: Version */
+	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
+
+	if (recv_status == -1)
+	{
+		perror("recv() in proc_config() failed");
+		return -1;
+	}
+
+	if (recv_status == 0)
+	{
+		return -1;
+	}
+
+	printf("| SUP Protocol Version: %i\n", recv_int32);
+
 	return 0;
 }
 
