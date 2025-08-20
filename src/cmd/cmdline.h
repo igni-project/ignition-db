@@ -31,7 +31,7 @@ extern "C" {
 
 #ifndef CMDLINE_PARSER_VERSION
 /** @brief the program version */
-#define CMDLINE_PARSER_VERSION "0.1"
+#define CMDLINE_PARSER_VERSION "0.2"
 #endif
 
 /** @brief Where the command line options are stored */
@@ -42,10 +42,13 @@ struct gengetopt_args_info
   char * domain_arg;	/**< @brief Absolute path of server socket.  */
   char * domain_orig;	/**< @brief Absolute path of server socket original value given at command line.  */
   const char *domain_help; /**< @brief Absolute path of server socket help description.  */
+  int verbose_flag;	/**< @brief Print additional debug information (default=off).  */
+  const char *verbose_help; /**< @brief Print additional debug information help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int domain_given ;	/**< @brief Whether domain was given.  */
+  unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
 
   char **inputs ; /**< @brief unnamed options (options without names) */
   unsigned inputs_num ; /**< @brief unnamed options number */

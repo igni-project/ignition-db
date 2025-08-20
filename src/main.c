@@ -1,46 +1,56 @@
 #include "main.h"
+#include "debug/print.h"
 #include "cmd/cmdline.h"
-#include "socket.h"
+#include "render/gfxenv.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/time.h>
 #include <sys/select.h>
+#include <time.h>
 #include <errno.h>
 #include <unistd.h>
 
+#define FPS_CAP 60
+
 int main(int argc, char *argv[], char *envp[])
 {
-	struct gengetopt_args_info args_info;
-
 	/* Server socket */
 	struct sockaddr_un sv_addr;
 	int srv_fd;
 
 	/* Variables for accept() */
-	struct sockaddr_un tmp_addr = {0};
-	socklen_t tmp_addr_sz = 0;
+	struct sockaddr_un tmaddr = {0};
+	socklen_t tmaddr_sz = 0;
 	int new_fd;
 
 	/* Set of all sockets */
 	fd_set read_fds;
 	int max_fd;
 
-	/* Client sockets */
-	sock_arr clients;
-	int client_fd;
-
-	/* Counter */
-	int i;
+	/* keep main loop going */
+	char running = 1;
 
 	/* Socket activity */
 	int activity;
 
+	/* The 3d world */
+	struct gfxenv gfxenv;
+
+	/* Counter */
+	int i;
+
+	/* Command-line arguments */
+	struct gengetopt_args_info args_info = {};
 
 	/* Parse command line arguments */
-	cmdline_parser(argc, argv, &args_info);
+	if (cmdline_parser(argc, argv, &args_info))
+	{
+		printf("Failed to parse command line arguments\n");
+	}
 
 	srv_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (srv_fd == -1)
@@ -63,42 +73,57 @@ int main(int argc, char *argv[], char *envp[])
 		return -1;
 	}
 
-	if (create_sock_arr(&clients) == -1)
-	{
-		printf("Failed to create socket array.\n");
-		return -1;
-	}
-
+	/* Ignition may execute child processes on request. */
 	i = 0;
 	while (i < args_info.inputs_num)
 	{
-		printf("Executing %s\n", args_info.inputs[i]);
+		if (args_info.verbose_flag)
+		{
+			printf("Executing %s\n", args_info.inputs[i]);
+		}
 
 		if (!fork()) break;
 
-        if (execve(args_info.inputs[i], 0, envp) == -1) {
-            printf("Failed to execute ");
-            perror(args_info.inputs[i]);
-            exit(EXIT_FAILURE);
-        }
+		if (execve(args_info.inputs[i], 0, envp) == -1) {
+			printf("Failed to execute ");
+			perror(args_info.inputs[i]);
+			exit(EXIT_FAILURE);
+		}
 
 		++i;
 	}
 
-	while (1)
+	/* Configure debug messages */
+	if (args_info.verbose_flag)
 	{
+		db_verbose_enable();
+	}
+
+	if (create_gfxenv(&gfxenv) == -1)
+	{
+		return -1;
+	}
+
+	/* The file descriptor of the server socket is higher than all zero of the
+	 * other active sockets. */
+	max_fd = srv_fd;
+
+	/* MAIN LOOP */
+	while (running)
+	{
+		/* 	Set up socket file descriptor set and max descriptor.
+			This code must occur every time a message is to be recieved. */
 		FD_ZERO(&read_fds);
 		FD_SET(srv_fd, &read_fds);
-		max_fd = srv_fd;
-
 		i = 0;
-		while (i < clients.count)
+		while (i < gfxenv.scene_count)
 		{
-			client_fd = clients.fds[i];
+			FD_SET(gfxenv.scenes[i].fd, &read_fds);
 
-			if (client_fd > 0) FD_SET(client_fd, &read_fds);
-
-			if (client_fd > max_fd) max_fd = client_fd;
+			if (gfxenv.scenes[i].fd > max_fd)
+			{
+				max_fd = gfxenv.scenes[i].fd;
+			}
 
 			++i;
 		}
@@ -114,30 +139,33 @@ int main(int argc, char *argv[], char *envp[])
 		/* Activity on the server socket means a new connection */
 		if (FD_ISSET(srv_fd, &read_fds))
 		{
-			new_fd = accept(srv_fd, (struct sockaddr*)&tmp_addr, &tmp_addr_sz);
+			new_fd = accept(srv_fd, (struct sockaddr*)&tmaddr, &tmaddr_sz);
 			if (new_fd == -1)
 			{
 				perror("Failed to accept client");
 			}
 			else
 			{
-				add_new_client(&clients, new_fd);
+				gfxenv_new_client(&gfxenv, new_fd);
 			}
 		}
 
-		i = clients.count - 1;
-		while (i != -1)
-		{
-			client_fd = clients.fds[i];
+		/* Execute incoming SUP commands */
+        i = gfxenv.scene_count - 1;
+        while (i != -1)
+        {
+            if (FD_ISSET(gfxenv.scenes[i].fd, &read_fds))
+            {
+				gfxenv_exec(&gfxenv, i);
+            }
 
-			if (FD_ISSET(client_fd, &read_fds))
-			{
-				proc_msg(&clients, i);
-			}
-
-			--i;
-		}
+            --i;
+        }
 	}
+
+	/* Clean up before exit */
+	destroy_gfxenv(gfxenv);
 
 	return 0;
 }
+

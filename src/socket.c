@@ -1,4 +1,6 @@
 #include "socket.h"
+#include "cmd/args.h"
+#include "render/display.h"
 
 #include <libsup/sup.h>
 #include <stdlib.h>
@@ -250,16 +252,13 @@ int proc_config(int fd)
 int proc_asset_load(int fd)
 {
 	int recv_status;
-	int pathlen;
-	int32_t recv_int32;
+	int path_len = 0;
+	int32_t asset_id;
 	char path_chr = 1;
-
-	printf("\033[1mNew request\033[0m (1: load asset)\n");
-
-	printf("| Client ID: %i\n", fd);
+	char *path_str;
 
 	/* Field: asset ID */
-	recv_status = recv(fd, &recv_int32, sizeof(recv_int32), 0);
+	recv_status = recv(fd, &asset_id, sizeof(asset_id), 0);
 
 	if (recv_status == -1)
 	{
@@ -272,30 +271,37 @@ int proc_asset_load(int fd)
 		return -1;
 	}
 
-	printf("| Asset ID: %i\n", recv_int32);
+	/* Field: asset path */
+	path_str = malloc(sizeof(char));
 
-	/* Print out recieved string character by character */
-
-	printf("| Asset path: ");
 	while (path_chr)
 	{
 		recv_status = recv(fd, &path_chr, sizeof(path_chr), 0);
 
-		if (recv_status == -1)
-		{
-			perror("recv() in proc_asset_load() failed");
-			return -1;
-		}
+		path_str[path_len] = path_chr;
 
-		if (recv_status == 0)
+		++path_len;
+		if (path_len & (path_len - 1) == 0)
 		{
-			return -1;
+			path_str = realloc(path_str, path_len * 2);
+	
+			if (!path_str)
+			{
+				perror("failed to reallocate string in proc_asset_load()");
+			}
 		}
-
-		printf("%c", path_chr);
 	}
 
-	printf("\n");
+	if (args_info.verbose_flag)
+	{
+		printf("\033[1mNew request\033[0m (1: load asset)\n");
+		printf("| Client ID: %i\n", fd);
+		printf("| Asset ID: %i\n", asset_id);
+		printf("| Asset path: ");
+		printf("%s\n", path_str);
+	}
+
+	free(path_str);
 
 	return 0;
 }
