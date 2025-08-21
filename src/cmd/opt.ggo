@@ -1,6 +1,6 @@
 package "ignition"
 version "0.2"
-purpose "Real-time Scene Update Protocol (SUP) render engine and debugging tool"
+purpose "Real-time Scene Update Protocol (SUP) debugging tool"
 
 option "domain" d "Absolute path of server socket" string required
 option "verbose" v "Print additional debug information" flag off
