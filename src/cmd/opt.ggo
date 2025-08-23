@@ -1,5 +1,5 @@
-package "ignition"
-version "0.2"
+package "ignition-db"
+version "0.2.2"
 purpose "Real-time Scene Update Protocol (SUP) debugging tool"
 
 option "domain" d "Absolute path of server socket" string required

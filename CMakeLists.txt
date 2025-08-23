@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.15...4.0)
 
 project(
-	ignition
-	VERSION 0.2
+	ignition-db
+	VERSION 0.2.2
 	LANGUAGES C
 )
 
 add_executable(
-	ignition
+	ignition-db
 	src/main.c
 	src/ipc.c
 	src/cmd/cmdline.c
@@ -18,8 +18,8 @@ add_executable(
 
 find_library(LIBSUP sup)
 
-target_link_libraries(ignition ${LIBSUP})
+target_link_libraries(ignition-db ${LIBSUP})
 
-install(TARGETS ignition)
+install(TARGETS ignition-db)
 include(CPack)
 
