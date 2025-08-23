@@ -1,4 +1,4 @@
-# ignition
+# ignition-db
 
 Ignition is a program that displays incoming SUP messages in human readable format.
 
