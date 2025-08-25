@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: ignition
+Name: ignition-db
 Description: Scene Update Protocol (SUP) debugging tool
 Version: @VERSION@
 Libs: -L${libdir} -ltde
