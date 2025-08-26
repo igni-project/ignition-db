@@ -9,9 +9,8 @@ project(
 add_executable(
 	ignition-db
 	src/main.c
-	src/ipc.c
 	src/cmd/cmdline.c
-	src/render/gfxenv.c
+	src/world/env.c
 	src/debug/print.c
 	src/format/sup.c
 )

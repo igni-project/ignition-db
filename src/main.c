@@ -1,7 +1,7 @@
 #include "main.h"
 #include "debug/print.h"
 #include "cmd/cmdline.h"
-#include "render/gfxenv.h"
+#include "world/env.h"
 
 #include <stdio.h>
 #include <stdlib.h>

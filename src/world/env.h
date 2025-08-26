@@ -1,7 +1,5 @@
-/* gfxenv.h - Graphical Environment */
-
-#ifndef RENDER_GFXENV_H
-#define RENDER_GFXENV_H 1
+#ifndef WORLD_ENV_H
+#define WORLD_ENV_H 1
 
 struct vertex
 {
