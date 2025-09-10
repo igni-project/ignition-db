@@ -14,8 +14,6 @@
 #include <errno.h>
 #include <unistd.h>
 
-#define FPS_CAP 60
-
 int main(int argc, char *argv[], char *envp[])
 {
 	/* Server socket */
@@ -104,10 +102,6 @@ int main(int argc, char *argv[], char *envp[])
 		return -1;
 	}
 
-	/* The file descriptor of the server socket is higher than all zero of the
-	 * other active sockets. */
-	max_fd = srv_fd;
-
 	/* MAIN LOOP */
 	while (running)
 	{
@@ -116,6 +110,9 @@ int main(int argc, char *argv[], char *envp[])
 		FD_ZERO(&read_fds);
 		FD_SET(srv_fd, &read_fds);
 		i = 0;
+
+		max_fd = srv_fd;
+
 		while (i < gfxenv.scene_count)
 		{
 			FD_SET(gfxenv.scenes[i].fd, &read_fds);
